@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "io.github.moehreag.randomworldnames.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"CreateWorldScreenMixin",
+		"WorldCreatorMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
