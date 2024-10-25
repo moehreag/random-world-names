@@ -25,7 +25,6 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.util.profiler.Profiler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -55,7 +54,7 @@ public class RandomWorldNames implements ClientModInitializer {
 					}
 
 					@Override
-					public CompletableFuture<List<String>> load(ResourceManager resourceManager, Profiler profiler, Executor executor) {
+					public CompletableFuture<List<String>> load(ResourceManager resourceManager, Executor executor) {
 						return CompletableFuture.supplyAsync(() -> resourceManager.getAllResources(NAME_LOCATION)
 								.stream().map(resource -> {
 									try {
@@ -70,7 +69,7 @@ public class RandomWorldNames implements ClientModInitializer {
 					}
 
 					@Override
-					public CompletableFuture<Void> apply(List<String> o, ResourceManager resourceManager, Profiler profiler, Executor executor) {
+					public CompletableFuture<Void> apply(List<String> o, ResourceManager resourceManager, Executor executor) {
 						return CompletableFuture.runAsync(() -> {
 							worldNames.addAll(o);
 							maxCombinations = Math.pow(nameLength, o.size());
