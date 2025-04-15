@@ -20,11 +20,12 @@ import lombok.Getter;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,9 +33,9 @@ import org.slf4j.LoggerFactory;
 
 public class RandomWorldNames implements ClientModInitializer {
 	private static final Logger log = LoggerFactory.getLogger("RandomWorldNames");
-	private static final Identifier NAME_LOCATION = Identifier.of("random-world-names", "names.json");
+	private static final ResourceLocation NAME_LOCATION = new ResourceLocation("random-world-names", "names.json");
 	private static final Gson GSON = new GsonBuilder().create();
-	public static final Random random = Random.create();
+	public static final RandomSource random = RandomSource.create();
 	private static final List<String> worldNames = new ArrayList<>();
 	private static final int nameLength = 3;
 	private static double maxCombinations;
@@ -46,21 +47,21 @@ public class RandomWorldNames implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		instance = this;
-		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
+		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
 				.registerReloadListener(new SimpleResourceReloadListener<List<String>>() {
 					@Override
-					public Identifier getFabricId() {
-						return Identifier.of("random-world-names", "name-reloader");
+					public ResourceLocation getFabricId() {
+						return new ResourceLocation("random-world-names", "name-reloader");
 					}
 
 					@Override
-					public CompletableFuture<List<String>> load(ResourceManager resourceManager, Executor executor) {
-						return CompletableFuture.supplyAsync(() -> resourceManager.getAllResources(NAME_LOCATION)
+					public CompletableFuture<List<String>> load(ResourceManager resourceManager, ProfilerFiller profiler, Executor executor) {
+						return CompletableFuture.supplyAsync(() -> resourceManager.getResourceStack(NAME_LOCATION)
 								.stream().map(resource -> {
 									try {
-										return GSON.fromJson(resource.getReader(), String[].class);
+										return GSON.fromJson(resource.openAsReader(), String[].class);
 									} catch (IOException e) {
-										log.warn("Failed to load world names from {}: ", resource.getPackId(), e);
+										log.warn("Failed to load world names from {}: ", resource.sourcePackId(), e);
 										return null;
 									}
 								}).filter(Objects::nonNull)
@@ -69,7 +70,7 @@ public class RandomWorldNames implements ClientModInitializer {
 					}
 
 					@Override
-					public CompletableFuture<Void> apply(List<String> o, ResourceManager resourceManager, Executor executor) {
+					public CompletableFuture<Void> apply(List<String> o, ResourceManager resourceManager, ProfilerFiller profiler, Executor executor) {
 						return CompletableFuture.runAsync(() -> {
 							worldNames.addAll(o);
 							maxCombinations = Math.pow(nameLength, o.size());
@@ -112,7 +113,7 @@ public class RandomWorldNames implements ClientModInitializer {
 			for (int i = 0; i < names.length; i++) {
 				String name;
 				do {
-					name = worldNames.get(random.nextBetween(0, limit));
+					name = worldNames.get(random.nextInt(0, limit));
 				} while (ArrayUtils.contains(names, name));
 				names[i] = name;
 			}
@@ -121,7 +122,7 @@ public class RandomWorldNames implements ClientModInitializer {
 			}
 
 			String name = String.join(delimiter, names);
-			if (Files.isDirectory(MinecraftClient.getInstance().getLevelStorage().getSavesDirectory().resolve(name))) {
+			if (Files.isDirectory(Minecraft.getInstance().getLevelSource().getBaseDir().resolve(name))) {
 				continue;
 			}
 			return name;

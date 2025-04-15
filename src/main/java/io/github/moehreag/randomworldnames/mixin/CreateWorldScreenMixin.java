@@ -1,46 +1,58 @@
 package io.github.moehreag.randomworldnames.mixin;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.moehreag.randomworldnames.RandomWorldNames;
-import net.minecraft.client.gui.screen.world.CreateWorldScreen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.*;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.layouts.GridLayout;
+import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.layouts.LayoutSettings;
+import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(CreateWorldScreen.GameTab.class)
 public class CreateWorldScreenMixin {
 	@Unique
-	private static final Identifier REGENERATE_LOCATION = Identifier.of("random-world-names", "regenerate");
+	private static final ResourceLocation REGENERATE_LOCATION = new ResourceLocation("random-world-names", "textures/gui/sprites/regenerate.png");
 
 	@Shadow
 	@Final
-	private TextFieldWidget worldNameField;
+	private EditBox nameEdit;
 
-	@ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/widget/LayoutWidgets;createLabeledWidget(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/client/gui/widget/Widget;Lnet/minecraft/text/Text;)Lnet/minecraft/client/gui/widget/LayoutWidget;"), index = 1)
-	private Widget addGenerateNewNameButton(Widget widget) {
-		DirectionalLayoutWidget horizontal = DirectionalLayoutWidget.horizontal().spacing(4);
-		horizontal.add(widget);
-		ButtonWidget regenerate = horizontal.add(TextIconButtonWidget.builder(
-				Text.translatable("randomworldnames.regenerate"), b ->
-						CompletableFuture.supplyAsync(() ->
+	@WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/GridLayout$RowHelper;addChild(Lnet/minecraft/client/gui/layouts/LayoutElement;Lnet/minecraft/client/gui/layouts/LayoutSettings;)Lnet/minecraft/client/gui/layouts/LayoutElement;", ordinal = 1))
+	private <T extends LayoutElement> T addGenerateNewNameButton(GridLayout.RowHelper instance, T widget, LayoutSettings layoutSettings, Operation<T> original) {
+		GridLayout.RowHelper horizontal = new GridLayout().spacing(4).createRowHelper(2);
+		horizontal.addChild(widget);
+		Button regenerate = horizontal.addChild(new Button(0, 0, widget.getHeight(), widget.getHeight(),
+				Component.translatable("randomworldnames.regenerate"), b ->
+				CompletableFuture.supplyAsync(() ->
 								RandomWorldNames.getInstance().getRandomWorldName(() ->
-										Text.translatable("selectWorld.newWorld").getString()))
-								.thenAccept(worldNameField::setText), true)
-				.dimension(widget.getHeight(), widget.getHeight())
-				.texture(REGENERATE_LOCATION, widget.getHeight(), widget.getHeight())
-				.build());
-		regenerate.setTooltip(Tooltip.of(Text.translatable("randomworldnames.regenerate")));
-		regenerate.setTooltipDelay(Duration.of(500, ChronoUnit.MILLIS));
-		return horizontal;
+										Component.translatable("selectWorld.newWorld").getString()))
+						.thenAccept(nameEdit::setValue), Supplier::get) {
+			@Override
+			protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+				super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+				guiGraphics.blit(REGENERATE_LOCATION, getX(), getY(), 0, 0, getWidth(), getHeight(), getWidth(), getHeight());
+			}
+
+			@Override
+			public void renderString(GuiGraphics guiGraphics, Font font, int color) {
+			}
+		});
+		regenerate.setTooltip(Tooltip.create(Component.translatable("randomworldnames.regenerate")));
+		regenerate.setTooltipDelay(500);
+
+		original.call(instance, horizontal.getGrid(), layoutSettings);
+		return widget;
 	}
 }
