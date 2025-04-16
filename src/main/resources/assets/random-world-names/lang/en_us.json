@@ -1,3 +1,7 @@
 {
-	"randomworldnames.regenerate": "Regenerate world name"
+	"random_world_names.regenerate": "Regenerate world name",
+	"random-world-names": "Random World Names",
+	"random_world_names.name_length": "Name Length (Words)",
+	"random_world_names.delimiter": "Delimiter",
+	"random_world_names.timeout": "Timeout (Seconds)"
 }
