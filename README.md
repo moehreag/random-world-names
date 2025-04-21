@@ -17,7 +17,7 @@ The config file (as of version 1.1.0) offers the following options:
 |---------------|------------------------------------------------------------|---------------|
 | `name_length` | The number of words (name entries) to generate a name from | `3`           |
 | `delimiter`   | The delimiter to use for joining the entries               | ` ` (Space)   |
-| `timeout`     | The generation timeout (seconds)                           | 2             |
+| `timeout`     | The generation timeout (seconds)                           | `2`           |
 
 *In-Game configuration is possible if ModMenu is installed.*
 

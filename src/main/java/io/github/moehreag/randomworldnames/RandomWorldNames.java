@@ -63,9 +63,9 @@ public class RandomWorldNames implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		instance = this;
+		delimiter.setMaxLength(10);
 		var category = OptionCategory.create(MODID);
 		category.add(nameLength, delimiter, timeout);
-		delimiter.setMaxLength(10);
 		var configManager = new JsonConfigManager(FabricLoader.getInstance().getConfigDir().resolve(MODID + ".json"), category);
 		AxolotlClientConfig.getInstance().register(configManager);
 		configManager.load();
