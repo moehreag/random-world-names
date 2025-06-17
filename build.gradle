@@ -41,10 +41,10 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation(include("io.github.axolotlclient:AxolotlClient-config:3.0.7+1.21.5"))
-	modImplementation("io.github.axolotlclient.AxolotlClient-config:AxolotlClientConfig-common:3.0.7")
+	modImplementation(include("io.github.axolotlclient:AxolotlClient-config:3.0.8+1.21.6"))
+	modImplementation("io.github.axolotlclient.AxolotlClient-config:AxolotlClientConfig-common:3.0.8")
 
-	modLocalRuntime("com.terraformersmc:modmenu:14.0.0-rc.2")
+	//modLocalRuntime("com.terraformersmc:modmenu:14.0.0-rc.2")
 	
 }
 
