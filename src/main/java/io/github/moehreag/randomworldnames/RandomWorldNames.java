@@ -111,6 +111,7 @@ public class RandomWorldNames implements ClientModInitializer {
 					@Override
 					public CompletableFuture<Void> apply(List<String> o, ResourceManager resourceManager, Executor executor) {
 						return CompletableFuture.runAsync(() -> {
+							worldNames.clear();
 							worldNames.addAll(o);
 							log.info("Loaded {} names for random world names!", o.size());
 						}, executor);
