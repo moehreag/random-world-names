@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -24,13 +23,11 @@ import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.StringOption;
 import lombok.Getter;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.RandomSource;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,53 +66,42 @@ public class RandomWorldNames implements ClientModInitializer {
 		var configManager = new JsonConfigManager(FabricLoader.getInstance().getConfigDir().resolve(MODID + ".json"), category);
 		AxolotlClientConfig.getInstance().register(configManager);
 		configManager.load();
-		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
-				.registerReloadListener(new SimpleResourceReloadListener<List<String>>() {
-					@Override
-					public ResourceLocation getFabricId() {
-						return rl("name-reloader");
-					}
-
-					@Override
-					public CompletableFuture<List<String>> load(ResourceManager resourceManager, Executor executor) {
-						return CompletableFuture.supplyAsync(() -> {
-							var blacklist = resourceManager.getResourceStack(BLACKLIST_LOCATION)
-									.stream().map(resource -> {
-										try {
-											return GSON.fromJson(resource.openAsReader(), String[].class);
-										} catch (IOException e) {
-											log.warn("Failed to load world names from {}: ", resource.sourcePackId(), e);
-											return null;
-										}
-									}).filter(Objects::nonNull)
-									.flatMap(Arrays::stream)
-									.toList();
-							return resourceManager.getResourceStack(NAME_LOCATION)
-									.stream().map(resource -> {
-										if (blacklist.contains(resource.sourcePackId())) {
-											log.info("Skipping names from blacklisted pack: {}", resource.sourcePackId());
-											return null;
-										}
-										try {
-											return GSON.fromJson(resource.openAsReader(), String[].class);
-										} catch (IOException e) {
-											log.warn("Failed to load world names from {}: ", resource.sourcePackId(), e);
-											return null;
-										}
-									}).filter(Objects::nonNull)
-									.flatMap(Arrays::stream)
-									.toList();
-						}, executor);
-					}
-
-					@Override
-					public CompletableFuture<Void> apply(List<String> o, ResourceManager resourceManager, Executor executor) {
-						return CompletableFuture.runAsync(() -> {
-							worldNames.clear();
-							worldNames.addAll(o);
-							log.info("Loaded {} names for random world names!", o.size());
-						}, executor);
-					}
+		ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloader(rl("name-reloader"),
+				(sharedState, executor, preparationBarrier, executor2) -> {
+					var resourceManager = sharedState.resourceManager();
+					return CompletableFuture.supplyAsync(() -> {
+								var blacklist = resourceManager.getResourceStack(BLACKLIST_LOCATION)
+										.stream().map(resource -> {
+											try {
+												return GSON.fromJson(resource.openAsReader(), String[].class);
+											} catch (IOException e) {
+												log.warn("Failed to load world names from {}: ", resource.sourcePackId(), e);
+												return null;
+											}
+										}).filter(Objects::nonNull)
+										.flatMap(Arrays::stream)
+										.toList();
+								return resourceManager.getResourceStack(NAME_LOCATION)
+										.stream().map(resource -> {
+											if (blacklist.contains(resource.sourcePackId())) {
+												log.info("Skipping names from blacklisted pack: {}", resource.sourcePackId());
+												return null;
+											}
+											try {
+												return GSON.fromJson(resource.openAsReader(), String[].class);
+											} catch (IOException e) {
+												log.warn("Failed to load world names from {}: ", resource.sourcePackId(), e);
+												return null;
+											}
+										}).filter(Objects::nonNull)
+										.flatMap(Arrays::stream)
+										.toList();
+							}, executor).thenCompose(preparationBarrier::wait)
+							.thenAcceptAsync(o -> {
+								worldNames.clear();
+								worldNames.addAll(o);
+								log.info("Loaded {} names for random world names!", o.size());
+							}, executor2);
 				});
 	}
 
@@ -146,12 +132,12 @@ public class RandomWorldNames implements ClientModInitializer {
 		}
 		CompletableFuture.runAsync(() -> {
 			try {
-				Thread.sleep(timeout.get()*1000);
+				Thread.sleep(timeout.get() * 1000);
 			} catch (InterruptedException ignored) {
 			}
 			timeoutReached.set(true);
 		});
-		double maxCombinations = Math.pow(nameLength.get(), limit+1);
+		double maxCombinations = Math.pow(nameLength.get(), limit + 1);
 		for (int total = 0; total < maxCombinations; total++) {
 			if (timeoutReached.get()) {
 				throw new TimeoutException("Generation timeout reached.");
