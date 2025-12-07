@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.11-SNAPSHOT'
+	id 'net.fabricmc.fabric-loom-remap' version '1.14.+'
 	id 'maven-publish'
 	id 'io.freefair.lombok' version '9.0.+'
 	id 'com.modrinth.minotaur' version '2.+'
@@ -41,10 +41,9 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation(include("io.github.axolotlclient:AxolotlClient-config:3.0.20+1.21.9"))
-	modImplementation("io.github.axolotlclient.AxolotlClient-config:AxolotlClientConfig-common:3.0.20")
+	modImplementation(include("io.github.axolotlclient:AxolotlClient-config:3.1.8+1.21.11"))
 
-	modLocalRuntime("com.terraformersmc:modmenu:16.0.0-rc.1")
+	modLocalRuntime("com.terraformersmc:modmenu:17.0.0-alpha.1")
 }
 
 processResources {

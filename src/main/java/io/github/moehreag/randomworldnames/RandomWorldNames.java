@@ -26,7 +26,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.util.RandomSource;
 import org.apache.commons.lang3.ArrayUtils;
@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 public class RandomWorldNames implements ClientModInitializer {
 	private static final Logger log = LoggerFactory.getLogger("RandomWorldNames");
 	private static final String MODID = "random-world-names";
-	private static final ResourceLocation BLACKLIST_LOCATION = rl("blacklist.json");
-	private static final ResourceLocation NAME_LOCATION = rl("names.json");
+	private static final Identifier BLACKLIST_LOCATION = rl("blacklist.json");
+	private static final Identifier NAME_LOCATION = rl("names.json");
 	private static final Gson GSON = new GsonBuilder().create();
 	public static final RandomSource random = RandomSource.create();
 	private static final List<String> worldNames = new ArrayList<>();
@@ -49,8 +49,8 @@ public class RandomWorldNames implements ClientModInitializer {
 	@Getter
 	private static RandomWorldNames instance;
 
-	public static ResourceLocation rl(String path) {
-		return ResourceLocation.fromNamespaceAndPath(MODID, path);
+	public static Identifier rl(String path) {
+		return Identifier.fromNamespaceAndPath(MODID, path);
 	}
 
 	private static String optionName(String name) {

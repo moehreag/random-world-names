@@ -13,7 +13,7 @@ import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 @Mixin(CreateWorldScreen.GameTab.class)
 public class CreateWorldScreenMixin {
 	@Unique
-	private static final ResourceLocation REGENERATE_LOCATION = RandomWorldNames.rl("regenerate");
+	private static final Identifier REGENERATE_LOCATION = RandomWorldNames.rl("regenerate");
 
 	@Shadow
 	@Final
