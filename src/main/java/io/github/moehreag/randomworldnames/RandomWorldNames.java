@@ -66,7 +66,7 @@ public class RandomWorldNames implements ClientModInitializer {
 		var configManager = new JsonConfigManager(FabricLoader.getInstance().getConfigDir().resolve(MODID + ".json"), category);
 		AxolotlClientConfig.getInstance().register(configManager);
 		configManager.load();
-		ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloader(rl("name-reloader"),
+		ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloadListener(rl("name-reloader"),
 				(sharedState, executor, preparationBarrier, executor2) -> {
 					var resourceManager = sharedState.resourceManager();
 					return CompletableFuture.supplyAsync(() -> {

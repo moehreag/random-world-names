@@ -1,7 +1,7 @@
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version '1.14.+'
+	id 'net.fabricmc.fabric-loom' version '1.15.+'
 	id 'maven-publish'
-	id 'io.freefair.lombok' version '9.0.+'
+	id 'io.freefair.lombok' version '9.2.+'
 	id 'com.modrinth.minotaur' version '2.+'
 }
 
@@ -30,20 +30,14 @@ loom {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings(loom.layered {
-		officialMojangMappings {
-			nameSyntheticMembers = true
-		}
-		parchment("org.parchmentmc.data:parchment-${project.parchment_minecraft}:${project.parchment}@zip")
-	})
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation(include("io.github.axolotlclient:AxolotlClient-config:3.1.8+1.21.11"))
+	implementation(include("io.github.axolotlclient:AxolotlClient-config:3.1.13+26.1"))
 
-	modLocalRuntime("com.terraformersmc:modmenu:17.0.0-alpha.1")
+	localRuntime("com.terraformersmc:modmenu:18.0.0-alpha.8")
 }
 
 processResources {
@@ -55,14 +49,14 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 25
 }
 
 java {
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
@@ -90,7 +84,7 @@ modrinth {
 	token = System.getenv("MODRINTH_TOKEN")
 	projectId = "TE51HZna"
 	versionType = "release"
-	uploadFile = remapJar
+	uploadFile = jar
 	additionalFiles = [sourcesJar]
 	syncBodyFrom = file("README.md").text
 }
